@@ -5,6 +5,8 @@ from datetime import datetime
 
 
 def region(
+        key: str,
+        email: str,
         terms: str = "accept",
         region: int = None,
         region_name: str = None,
@@ -14,6 +16,8 @@ def region(
     """
     Return the regions
 
+    :param key: API key.
+    :param email: email address.
     :param terms: licence term, must be accepted to return query results.
     :param region: The id of the region
     :param region_name: The name of the region
@@ -26,6 +30,9 @@ def region(
     url = "https://api.acleddata.com/region/read"
 
     data = dict()
+    data["key"] = key
+    data["email"] = email
+
     if terms is not None:
         data["terms"] = terms
 
@@ -45,6 +52,9 @@ def region(
         data["event_count"] = event_count
 
     ret = requests.get(url, params=data, verify=True).json()
+    if ~ret["success"]:
+        raise Exception("\n    status: " + str(ret["error"]["status"]) +
+                        "\n    error: " + str(ret["error"]["message"]))
 
     dtypes = np.dtype([
         ('event_count', int),
@@ -62,7 +72,7 @@ def region(
     ]
     df = pd.DataFrame(columns=columns)
     df.astype(dtype=dtypes)
-    if ret["success"]:
-        df = pd.DataFrame(ret["data"])
+
+    df = pd.DataFrame(ret["data"])
 
     return df

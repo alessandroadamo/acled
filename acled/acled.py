@@ -5,6 +5,8 @@ from datetime import datetime
 
 
 def acled(
+        key: str,
+        email: str,
         terms: str = "accept",
         limit: int = 500,
         page: int = None,
@@ -42,6 +44,8 @@ def acled(
     """
     Returns the main ACLED dataset.
 
+    :param key: API key.
+    :param email: email address.
     :param terms: licence term, must be accepted to return query results.
     :param limit: By default there is a limit of 500 rows of data returned. You can use the limit query name to change
     the default number. Setting limit as 0 will return all relevant data.
@@ -83,7 +87,11 @@ def acled(
     url = "https://api.acleddata.com/acled/read"
 
     data = dict()
+    data["key"] = key
+    data["email"] = email
+
     data["export_type"] = "json"
+
     if terms is not None:
         data["terms"] = terms
 
@@ -187,6 +195,9 @@ def acled(
         data["iso3"] = iso3
 
     ret = requests.get(url, params=data, verify=True).json()
+    if ~ret["success"]:
+        raise Exception("\n    status: " + str(ret["error"]["status"]) +
+                        "\n    error: " + str(ret["error"]["message"]))
 
     dtypes = np.dtype([
         ("data_id", int),
@@ -256,8 +267,8 @@ def acled(
     ]
     df = pd.DataFrame(columns=columns)
     df.astype(dtype=dtypes)
-    if ret["success"]:
-        df = pd.DataFrame(ret["data"])
+
+    df = pd.DataFrame(ret["data"])
 
     return df
 

@@ -5,6 +5,8 @@ from datetime import datetime
 
 
 def country(
+        key: str,
+        email: str,
         terms: str = "accept",
         country: str = None,
         iso: int = None,
@@ -15,6 +17,8 @@ def country(
     """
     Returns the countries
 
+    :param key: API key.
+    :param email: email address.
     :param terms: licence term, must be accepted to return query results.
     :param country: The name of the country
     :param iso: The iso number of the country
@@ -28,6 +32,9 @@ def country(
     url = "https://api.acleddata.com/country/read"
 
     data = dict()
+    data["key"] = key
+    data["email"] = email
+
     if terms is not None:
         data["terms"] = terms
 
@@ -50,6 +57,9 @@ def country(
         data["event_count"] = event_count
 
     ret = requests.get(url, params=data, verify=True).json()
+    if ~ret["success"]:
+        raise Exception("\n    status: " + str(ret["error"]["status"]) +
+                        "\n    error: " + str(ret["error"]["message"]))
 
     dtypes = np.dtype([
         ('event_count', int),
@@ -69,8 +79,8 @@ def country(
     ]
     df = pd.DataFrame(columns=columns)
     df.astype(dtype=dtypes)
-    if ret["success"]:
-        df = pd.DataFrame(ret["data"])
+
+    df = pd.DataFrame(ret["data"])
 
     return df
 

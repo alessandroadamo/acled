@@ -5,6 +5,8 @@ from datetime import datetime
 
 
 def actortype(
+        key: str,
+        email: str,
         terms: str = "accept",
         actor_type_id: int = None,
         actor_type_name: str = None,
@@ -14,6 +16,8 @@ def actortype(
     """
     Return the Actor Type
 
+    :param key: API key.
+    :param email: email address.
     :param terms: licence term, must be accepted to return query results.
     :param actor_type_id: The id of the actor type
     :param actor_type_name: The name of the actor type
@@ -26,6 +30,9 @@ def actortype(
     url = "https://api.acleddata.com/actortype/read"
 
     data = dict()
+    data["key"] = key
+    data["email"] = email
+
     if terms is not None:
         data["terms"] = terms
 
@@ -45,6 +52,9 @@ def actortype(
         data["event_count"] = event_count
 
     ret = requests.get(url, params=data, verify=True).json()
+    if ~ret["success"]:
+        raise Exception("\n    status: " + str(ret["error"]["status"]) +
+                        "\n    error: " + str(ret["error"]["message"]))
 
     dtypes = np.dtype([
         ('event_count', int),
@@ -62,8 +72,8 @@ def actortype(
     ]
     df = pd.DataFrame(columns=columns)
     df.astype(dtype=dtypes)
-    if ret["success"]:
-        df = pd.DataFrame(ret["data"])
+
+    df = pd.DataFrame(ret["data"])
 
     return df
 
